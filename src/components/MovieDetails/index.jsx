@@ -1,5 +1,6 @@
 import React from "react";
-import { View, TouchableOpacity, Text, StyleSheet, ScrollView} from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, ScrollView, Linking, Image} from 'react-native';
+
 
 export default function MovieDetails({ movie, func }){
     return(
@@ -13,13 +14,19 @@ export default function MovieDetails({ movie, func }){
                 <ScrollView>
 
                     <View style={style.containerSinopse}>
-                        <Text style={style.title}>{movie.original_title}</Text>
+                        <Text style={style.title}>{movie.title}</Text>
+                        <Text style={style.sinopseTitle}>Título original: {movie.original_title}</Text>
+                        <Text style={style.sinopseTitle}>Lançamento: {new Date(movie.release_date).toLocaleDateString('pt-BR')}</Text>
                         <Text style={style.sinopseTitle}>Sinopse:</Text>
-                        <Text style={style.sinopse}>{movie.overview}</Text>
+                        <Text style={style.sinopse}>{movie.overview ? movie.overview : "Não há informação fornecida atualmente para este título."}</Text>
                         <View style={style.avarageContainer}>
                             <Text style={style.averageTitle}>Avaliação: </Text>
                             <Text style={style.averageRate}>{Number(movie.vote_average).toFixed(1)}</Text>
                         </View>
+                        <TouchableOpacity onPress={() => Linking.openURL("https://www.youtube.com/results?search_query="+ movie.original_title + "+trailer")} style={style.btnTrailer}>
+                            <Image source={require("../../assets/ytube.png")} style={style.imgTrailer}/>
+                            <Text style={style.txtTrailer}>Ver Trailer</Text>
+                        </TouchableOpacity>
 
                     </View>
                 </ScrollView>
@@ -35,7 +42,7 @@ const style = StyleSheet.create({
     container: {
         flex: 1,
         paddingHorizontal: 10,
-        alignItems: 'center'
+        alignItems: 'center',
     },
 
     containerDetail: {
@@ -107,5 +114,24 @@ const style = StyleSheet.create({
         alignItems: 'center',
         marginTop: 10,
         gap: 5
+    },
+
+    btnTrailer:{
+        width: 110,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexDirection: 'row',
+        marginTop: 10
+    },
+
+    imgTrailer: {
+        width: 40,
+        height: 40
+    },
+
+    txtTrailer:{
+        fontSize: 15,
+        color: '#fff'
     }
+
 });

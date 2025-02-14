@@ -16,7 +16,7 @@ export default function MovieList({ data }){
         async function verifyFav(){
 
             let list = [];
-            await AsyncStorage.getItem('@fav')
+            await AsyncStorage.getItem('@favs')
             .then((response) => {
                 if(response != ""){
 
@@ -25,8 +25,8 @@ export default function MovieList({ data }){
                 }
             })
 
-            list.forEach(id => {
-                if(data.id == id){
+            list.forEach(item => {
+                if(data.id == item.id){
                     setLiked(true);
                 }
             })
@@ -50,7 +50,7 @@ export default function MovieList({ data }){
 
         var favlist = [];
 
-           await AsyncStorage.getItem('@fav')
+           await AsyncStorage.getItem('@favs')
             .then((itens) => {
                 if(itens != null){
                     favlist = JSON.parse(itens)
@@ -62,8 +62,8 @@ export default function MovieList({ data }){
             data.liked = true;
             setLiked(true);
 
-            favlist.push(data.id)
-           await AsyncStorage.setItem('@fav', JSON.stringify(favlist))
+            favlist.push(data)
+           await AsyncStorage.setItem('@favs', JSON.stringify(favlist))
 
             return;
 
@@ -72,11 +72,11 @@ export default function MovieList({ data }){
         data.liked = false;
         setLiked(false);
         
-        let list = favlist.filter((id) => {
-            return id != data.id
+        let list = favlist.filter((item) => {
+            return item.id != data.id
         });
 
-        await AsyncStorage.setItem('@fav', JSON.stringify(list));
+        await AsyncStorage.setItem('@favs', JSON.stringify(list));
 
     }
 
@@ -85,8 +85,8 @@ export default function MovieList({ data }){
         <View style={style.container}>
             <View style={style.movieContainer}>
                 <View  style={style.header}>
-                    <Text style={style.title}>{data.original_title}</Text>
-                    <TouchableOpacity onPress={() => like()}>
+                    <Text style={style.title}>{data.title}</Text>
+                    <TouchableOpacity onPress={() => like()} style={{ position: 'absolute', right: 10, top: 6, height: 40, width: 40, alignItems: 'flex-end', justifyContent: 'flex-start' }}>
                         <Image source={liked ? require('../../assets/likeada.png') : require('../../assets/like.png')} style={style.like}/>
                     </TouchableOpacity>
                 </View>
@@ -110,7 +110,7 @@ const style = StyleSheet.create({
         alignItems: 'center',
         gap: 10,
         flexDirection: 'column',
-        margin: 15
+        margin: 15,
 
     },
 
