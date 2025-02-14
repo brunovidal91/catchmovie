@@ -14,7 +14,6 @@ export default function MovieList({ data }){
 
     useEffect(() => {
         async function verifyFav(){
-
             let list = [];
             await AsyncStorage.getItem('@favs')
             .then((response) => {

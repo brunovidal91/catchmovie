@@ -1,6 +1,7 @@
-import React, {useEffect, useState} from "react";
-import { View, Text, FlatList, TouchableWithoutFeedback, TouchableOpacity } from 'react-native';
+import React, {useEffect, useState, useRef} from "react";
+import { View, Text, FlatList, TouchableWithoutFeedback, TouchableOpacity, Alert } from 'react-native';
 import Icon from "@react-native-vector-icons/fontawesome";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 //Api
@@ -19,12 +20,21 @@ export default function Main(){
   const [modalVisible, setModalIsVisible] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [favList, setFavList] = useState([]);
+  const [moviePosition, setMoviePosition] = useState(0);
+
+
+  const flatListRef = useRef(null);
 
   
   useEffect(() => {
 
+
+
     getMoviesList();
     changeScreen(1);
+    getFavList();
+
 
   }, [])
 
@@ -32,16 +42,20 @@ export default function Main(){
   useEffect(() => {
 
     getMoviesList();
+    getFavList();
 
-  }, [page])
+  }, [page, favList])
   
   
   
-  function changeScreen(num){
+   function changeScreen(num){
     if(num == 1){
       setColor1("#00BFFF");
       setColor2("#aaa")
       setModalIsVisible(false);
+      // flatListRef.current.scrollToOffset({animated: true, offset: Number(`${moviePosition}`)})
+
+    
     }else{
       setColor2("#00BFFF");
       setColor1("#aaa")
@@ -82,8 +96,10 @@ export default function Main(){
     
     if(direction == 'left'){
       setPage(page-1)
+      flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
     }else{
       setPage(page+1)
+      flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
     }
     
   }
@@ -96,21 +112,40 @@ export default function Main(){
     if(direction == 'left' && page - 10 < 1){
 
       setPage(1);
+      flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
+
 
     }else if(direction == 'right' && page + 10 > totalPages){
       setPage(totalPages);
+      flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
 
     }else{
 
       if(direction == 'left'){
         setPage(page-10)
+        flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
       }else{
         setPage(page+10)
+        flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
       }
     }
     
     
   }
+
+  async function getFavList(){
+
+    await AsyncStorage.getItem("@favs")
+    .then((response) =>{
+        if(response){
+
+            setFavList(JSON.parse(response));
+ 
+            
+        }   
+    })
+  }
+
  
 
   return(
@@ -118,8 +153,18 @@ export default function Main(){
       {
 
         modalVisible ?
+        <View style={{flex: 1, backgroundColor: '#151515'}}>
 
-        <Favorites/>
+
+          <Text style={{fontSize: 17, color: '#fc0', textAlign: 'center', marginTop: 10}}>Meus favoritos</Text>
+          <FlatList
+            data={favList}
+            keyExtractor={item => String(item.id)}
+            renderItem={({ item }) => <Favorites movie={item} getFavL={() => getFavList} favList={favList} />}
+
+          />
+          
+        </View>
 
         :
 
@@ -128,6 +173,8 @@ export default function Main(){
         data={movieList}
         keyExtractor={item => String(item.id)}
         renderItem={({item}) => <MovieList data={item}/>}
+        ref={flatListRef}
+        onViewableItemsChanged={({item, changed}) => setMoviePosition(changed[0].index)}
       />
       }
 
@@ -141,14 +188,20 @@ export default function Main(){
 
         <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', gap: 15}}>
 
-          <TouchableOpacity style={{width: 35, height: 35, alignItems: 'center', justifyContent: 'center'}} onPress={() => changePage("left")} onLongPress={() => changeTemPages("left")}>
-            <Icon name="arrow-left" color="tomato" size={20}/>
+          <TouchableOpacity style={{width: 35, height: 35, alignItems: 'center', justifyContent: 'center'}} 
+          onPress={() => changePage("left")} 
+          onLongPress={() => changeTemPages("left")}
+          disabled={modalVisible ? true : false}>
+            <Icon name="arrow-left" color={modalVisible ? "#aaa" : "tomato"} size={20}/>
           </TouchableOpacity>
 
           <Text style={{color: '#fff', fontSize: 18}}>{page} de {totalPages}</Text>
 
-          <TouchableOpacity style={{width: 35, height: 35, alignItems: 'center', justifyContent: 'center'}} onPress={() => changePage("right")} onLongPress={() => changeTemPages("right")}>
-            <Icon name="arrow-right" color="tomato" size={20}/>
+          <TouchableOpacity style={{width: 35, height: 35, alignItems: 'center', justifyContent: 'center'}} 
+          onPress={() => changePage("right")} 
+          onLongPress={() => changeTemPages("right")}
+          disabled={modalVisible ? true : false}>
+            <Icon name="arrow-right" color={modalVisible ? "#aaa" : "tomato"} size={20}/>
           </TouchableOpacity>
 
         </View>
@@ -157,7 +210,7 @@ export default function Main(){
           <View style={{flexDirection: 'column', alignItems:'center'}}>
             <Icon name="heart" size={20} color={color2}/>
             <Text style={{color: '#fff', fontSize: 12}}>Favoritos</Text>
-          </View>
+          </View> 
 
         </TouchableWithoutFeedback>
       </View>
